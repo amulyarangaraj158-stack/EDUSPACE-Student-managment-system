@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EduSpace — Student Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f2f8;--sidebar:#0f1117;--sidebar-w:260px;--sidebar-w-collapsed:72px;
+  --card:#ffffff;--card2:#f7f8fc;--border:#e4e7f0;--text:#0f1117;--muted:#8a90a8;
+  --accent:#4f46e5;--accent-soft:#ede9fe;--green:#10b981;--green-soft:#d1fae5;
+  --red:#ef4444;--red-soft:#fee2e2;--amber:#f59e0b;--amber-soft:#fef3c7;
+  --blue:#3b82f6;--blue-soft:#dbeafe;--pink:#ec4899;--pink-soft:#fce7f3;
+  --r:14px;--shadow:0 2px 16px rgba(15,17,23,.08);--shadow-lg:0 8px 40px rgba(15,17,23,.14);
+  --transition:all .22s cubic-bezier(.4,0,.2,1);
+}
+html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+
+/* LOGIN */
+#login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f1117 0%,#1e1b4b 50%,#0f1117 100%);position:fixed;inset:0;z-index:9999;transition:opacity .4s,transform .4s;}
+#login-page.hidden{opacity:0;transform:scale(1.04);pointer-events:none}
+.login-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.login-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.25}
+.login-orb.a{width:500px;height:500px;background:#4f46e5;top:-100px;left:-100px}
+.login-orb.b{width:400px;height:400px;background:#ec4899;bottom:-80px;right:-80px}
+.login-orb.c{width:300px;height:300px;background:#10b981;top:40%;left:50%;transform:translate(-50%,-50%)}
+.login-box{position:relative;z-index:1;width:420px;background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:48px 44px;box-shadow:0 32px 80px rgba(0,0,0,.4);}
+.login-logo{font-family:'Instrument Serif',serif;font-size:2rem;color:#fff;margin-bottom:4px}
+.login-logo span{color:#818cf8}
+.login-tagline{font-size:.82rem;color:rgba(255,255,255,.45);margin-bottom:36px;letter-spacing:.5px}
+.login-label{font-size:.75rem;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;display:block}
+.login-input{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-family:inherit;font-size:.95rem;padding:13px 16px;outline:none;transition:var(--transition);margin-bottom:18px;}
+.login-input::placeholder{color:rgba(255,255,255,.3)}
+.login-input:focus{border-color:rgba(129,140,248,.6);background:rgba(255,255,255,.1)}
+.login-btn{width:100%;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:1rem;font-weight:700;padding:14px;cursor:pointer;transition:var(--transition);letter-spacing:.3px;margin-top:4px;}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(79,70,229,.4)}
+.login-hint{text-align:center;font-size:.8rem;color:rgba(255,255,255,.3);margin-top:20px}
+.login-hint b{color:rgba(255,255,255,.6)}
+.login-error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);border-radius:10px;color:#fca5a5;font-size:.85rem;padding:10px 14px;margin-bottom:12px;display:none;}
+
+/* APP */
+#app{display:flex;height:100vh;overflow:hidden;opacity:0;transition:opacity .4s}
+#app.visible{opacity:1}
+
+/* SIDEBAR */
+#sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--sidebar);color:#fff;display:flex;flex-direction:column;transition:width .3s cubic-bezier(.4,0,.2,1);overflow:hidden;position:relative;z-index:10;}
+#sidebar.collapsed{width:var(--sidebar-w-collapsed)}
+.sb-header{display:flex;align-items:center;gap:12px;padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;min-height:72px;}
+.sb-logo-icon{width:36px;height:36px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.sb-logo-text{font-family:'Instrument Serif',serif;font-size:1.3rem;white-space:nowrap;overflow:hidden;transition:var(--transition)}
+.sb-logo-text span{color:#818cf8}
+#sidebar.collapsed .sb-logo-text{opacity:0;width:0;overflow:hidden}
+.sb-toggle{margin-left:auto;background:rgba(255,255,255,.07);border:none;color:#fff;width:28px;height:28px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;transition:var(--transition);}
+.sb-toggle:hover{background:rgba(255,255,255,.14)}
+.sb-nav{flex:1;overflow-y:auto;padding:16px 12px;display:flex;flex-direction:column;gap:4px}
+.sb-nav::-webkit-scrollbar{width:0}
+.sb-section-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.25);padding:12px 8px 6px;white-space:nowrap;overflow:hidden;transition:var(--transition);}
+#sidebar.collapsed .sb-section-label{opacity:0}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 10px;border-radius:10px;cursor:pointer;transition:var(--transition);white-space:nowrap;overflow:hidden;color:rgba(255,255,255,.55);font-size:.9rem;font-weight:500;border:none;background:none;text-align:left;width:100%;}
+.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9)}
+.nav-item.active{background:rgba(79,70,229,.25);color:#fff}
+.nav-item.active .nav-icon{color:#818cf8}
+.nav-icon{font-size:1.1rem;width:22px;text-align:center;flex-shrink:0}
+.nav-label{transition:var(--transition)}
+#sidebar.collapsed .nav-label{opacity:0;width:0;overflow:hidden}
+.nav-badge{margin-left:auto;background:#ef4444;color:#fff;border-radius:10px;font-size:.67rem;font-weight:700;padding:2px 7px;flex-shrink:0;transition:var(--transition);}
+#sidebar.collapsed .nav-badge{opacity:0;width:0;overflow:hidden}
+.sb-footer{padding:16px 12px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;}
+.sb-avatar{width:36px;height:36px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;color:#fff;}
+.sb-user-info{overflow:hidden;transition:var(--transition)}
+#sidebar.collapsed .sb-user-info{opacity:0;width:0;overflow:hidden}
+.sb-username{font-size:.88rem;font-weight:600;white-space:nowrap}
+.sb-useremail{font-size:.72rem;color:rgba(255,255,255,.4);white-space:nowrap}
+.sb-logout{margin-left:auto;background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:1rem;transition:var(--transition);flex-shrink:0;}
+.sb-logout:hover{color:#ef4444}
+#sidebar.collapsed .sb-logout{display:none}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;gap:16px;flex-shrink:0;}
+.topbar-title{font-size:1.15rem;font-weight:700}
+.topbar-sub{font-size:.8rem;color:var(--muted);margin-left:4px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.topbar-pill{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:.8rem;font-weight:600;color:var(--muted);}
+.topbar-notif{width:36px;height:36px;background:var(--card2);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;position:relative;transition:var(--transition);}
+.topbar-notif:hover{background:var(--accent-soft)}
+.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:2px solid var(--card);}
+#content{flex:1;overflow-y:auto;padding:28px}
+#content::-webkit-scrollbar{width:5px}
+#content::-webkit-scrollbar-track{background:transparent}
+#content::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+.page{display:none;animation:fadeUp .3s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--shadow)}
+.card-title{font-size:1rem;font-weight:700;margin-bottom:4px}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.stat-tile{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;cursor:pointer;transition:var(--transition);}
+.stat-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.stat-tile-accent{position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px}
+.stat-tile-icon{font-size:1.5rem;margin-bottom:12px}
+.stat-tile-value{font-size:2rem;font-weight:800;line-height:1;margin-bottom:4px}
+.stat-tile-label{font-size:.78rem;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.6px}
+.stat-tile-change{font-size:.75rem;font-weight:600;margin-top:8px}
+.dash-row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px}
+.dash-row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.widget-chart{height:220px;display:flex;align-items:center;justify-content:center}
+.widget-chart canvas{max-height:200px}
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.qa-btn{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 14px;cursor:pointer;transition:var(--transition);display:flex;flex-direction:column;align-items:center;gap:8px;font-family:inherit;font-size:.82rem;font-weight:600;color:var(--text);box-shadow:var(--shadow);}
+.qa-btn:hover{background:var(--accent-soft);border-color:#c7d2fe;color:var(--accent);transform:translateY(-2px)}
+.qa-btn-icon{font-size:1.4rem}
+.activity-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.activity-text{font-size:.85rem;flex:1}
+.activity-time{font-size:.75rem;color:var(--muted);white-space:nowrap}
+
+/* ATTENDANCE */
+.att-summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.att-subject-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:var(--shadow);transition:var(--transition);cursor:pointer;}
+.att-subject-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.att-ring-wrap{display:flex;justify-content:center;margin:12px 0 8px}
+.att-subject-name{font-size:.9rem;font-weight:700;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-subject-stat{font-size:.75rem;color:var(--muted);text-align:center}
+.progress-ring{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.progress-ring svg{transform:rotate(-90deg)}
+.progress-ring-val{position:absolute;font-size:.9rem;font-weight:800}
+
+/* CGPA */
+.cgpa-hero{background:linear-gradient(135deg,#0f1117,#1e1b4b);border-radius:20px;padding:32px;margin-bottom:20px;display:flex;align-items:center;gap:32px;color:#fff;}
+.cgpa-big{font-size:4rem;font-weight:800;line-height:1;font-family:'Instrument Serif',serif}
+.cgpa-big span{font-size:1.5rem;color:rgba(255,255,255,.4)}
+.cgpa-meta{flex:1}
+.cgpa-meta h3{font-size:1.1rem;margin-bottom:4px}
+.cgpa-meta p{font-size:.85rem;color:rgba(255,255,255,.5)}
+.cgpa-grades-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin:16px 0}
+.grade-chip{border-radius:10px;padding:12px;text-align:center;}
+.grade-chip-val{font-size:1.4rem;font-weight:800}
+.grade-chip-label{font-size:.72rem;color:var(--muted);margin-top:2px}
+.sem-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.sem-tab{padding:7px 18px;border-radius:20px;font-size:.82rem;font-weight:600;border:1.5px solid var(--border);background:var(--card);cursor:pointer;transition:var(--transition);font-family:inherit;color:var(--text);}
+.sem-tab:hover{border-color:var(--accent);color:var(--accent)}
+.sem-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* TABLES */
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--card2)}
+th{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;padding:12px 16px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:.88rem;background:var(--card)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f7f8fc}
+
+/* FORMS */
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+label{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:6px}
+input,select,textarea{width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:.9rem;padding:10px 14px;outline:none;transition:var(--transition);}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);background:#fff}
+textarea{resize:vertical;min-height:80px}
+
+/* BUTTONS */
+.btn{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 22px;font-family:inherit;font-size:.9rem;font-weight:700;cursor:pointer;transition:var(--transition);display:inline-flex;align-items:center;gap:7px;}
+.btn:hover{background:#4338ca;transform:translateY(-1px);box-shadow:0 4px 14px rgba(79,70,229,.3)}
+.btn.secondary{background:var(--card2);color:var(--text);border:1.5px solid var(--border)}
+.btn.secondary:hover{background:var(--accent-soft);border-color:#c7d2fe;color:var(--accent);box-shadow:none}
+.btn.danger{background:var(--red)}
+.btn.danger:hover{background:#dc2626;box-shadow:0 4px 14px rgba(239,68,68,.3)}
+.btn.small{padding:6px 14px;font-size:.78rem;border-radius:8px}
+.btn.green{background:var(--green)}
+.btn.green:hover{background:#059669;box-shadow:0 4px 14px rgba(16,185,129,.3)}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.3px}
+.badge.green{background:var(--green-soft);color:#065f46}
+.badge.red{background:var(--red-soft);color:#991b1b}
+.badge.amber{background:var(--amber-soft);color:#92400e}
+.badge.blue{background:var(--blue-soft);color:#1e40af}
+.badge.purple{background:var(--accent-soft);color:#4f46e5}
+.badge.pink{background:var(--pink-soft);color:#9d174d}
+
+/* KANBAN */
+.kanban{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.kanban-col{background:var(--card2);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.kanban-col-header{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.kanban-col-title{font-size:.88rem;font-weight:700}
+.kanban-count{background:var(--border);border-radius:20px;padding:2px 9px;font-size:.72rem;font-weight:700;color:var(--muted)}
+.task-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;transition:var(--transition);}
+.task-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+.task-card.done{opacity:.55}
+.task-card.done .task-title{text-decoration:line-through;color:var(--muted)}
+.task-title{font-size:.88rem;font-weight:600;margin-bottom:6px}
+.task-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.task-due{font-size:.72rem;color:var(--muted)}
+.task-due.overdue{color:var(--red)}
+.task-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);background:none;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;transition:var(--transition);font-size:.7rem;}
+.task-check.checked{background:var(--green);border-color:var(--green);color:#fff}
+
+/* URGENT */
+.urgent-list{display:flex;flex-direction:column;gap:10px}
+.urgent-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;transition:var(--transition);}
+.urgent-item:hover{box-shadow:var(--shadow-lg)}
+.urgent-rank{width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;}
+.urgent-item-body{flex:1}
+.urgent-item-title{font-size:.92rem;font-weight:700}
+.urgent-item-sub{font-size:.78rem;color:var(--muted);margin-top:2px}
+.urgent-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* PROFILE */
+.profile-header{background:linear-gradient(135deg,#0f1117,#312e81);border-radius:20px;padding:32px;margin-bottom:20px;display:flex;align-items:center;gap:24px;color:#fff;}
+.profile-avatar-big{width:80px;height:80px;border-radius:18px;flex-shrink:0;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;border:3px solid rgba(255,255,255,.2);}
+.profile-name{font-size:1.5rem;font-weight:800;margin-bottom:4px}
+.profile-role{font-size:.85rem;color:rgba(255,255,255,.5)}
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,17,23,.55);backdrop-filter:blur(4px);z-index:9000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--card);border-radius:20px;padding:32px;width:480px;max-width:95vw;box-shadow:var(--shadow-lg);transform:scale(.95);transition:transform .25s;}
+.modal-overlay.open .modal{transform:scale(1)}
+.modal-title{font-size:1.1rem;font-weight:800;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.modal-close{background:var(--card2);border:1px solid var(--border);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.modal-close:hover{background:var(--red-soft);color:var(--red)}
+.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.section-hd h2{font-size:1.05rem;font-weight:800}
+.empty-state{text-align:center;padding:48px;color:var(--muted)}
+.empty-state-icon{font-size:2.5rem;margin-bottom:12px}
+.empty-state-text{font-size:.9rem}
+body::-webkit-scrollbar{width:0}
+.alert-banner{background:var(--red-soft);border:1px solid #fca5a5;border-radius:10px;padding:12px 16px;font-size:.85rem;color:#991b1b;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr 1fr}.dash-row{grid-template-columns:1fr}.kanban{grid-template-columns:1fr}}
+@media(max-width:600px){.dash-grid{grid-template-columns:1fr}:root{--sidebar-w:240px}#sidebar:not(.collapsed){position:fixed;height:100vh;z-index:100}}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-page">
+  <div class="login-bg">
+    <div class="login-orb a"></div>
+    <div class="login-orb b"></div>
+    <div class="login-orb c"></div>
+  </div>
+  <div class="login-box">
+    <div class="login-logo">Edu<span>Space</span></div>
+    <div class="login-tagline">STUDENT MANAGEMENT SYSTEM</div>
+    <div class="login-error" id="login-error"></div>
+    <label class="login-label" for="l-user">Username / Roll No.</label>
+    <input class="login-input" id="l-user" type="text" placeholder="e.g. CS23001" autocomplete="off"/>
+    <label class="login-label" for="l-pass">Password</label>
+    <input class="login-input" id="l-pass" type="password" placeholder="Enter your password"/>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-hint">First time? Any username + any password will register you automatically.</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <aside id="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo-icon">📚</div>
+      <div class="sb-logo-text">Edu<span>Space</span></div>
+      <button class="sb-toggle" onclick="toggleSidebar()">☰</button>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section-label">MAIN</div>
+      <button class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></button>
+      <button class="nav-item" onclick="nav('profile',this)"><span class="nav-icon">👤</span><span class="nav-label">My Profile</span></button>
+      <div class="sb-section-label">ACADEMIC</div>
+      <button class="nav-item" onclick="nav('attendance',this)"><span class="nav-icon">📅</span><span class="nav-label">Attendance</span></button>
+      <button class="nav-item" onclick="nav('cgpa',this)"><span class="nav-icon">🎓</span><span class="nav-label">CGPA Tracker</span></button>
+      <div class="sb-section-label">TASKS</div>
+      <button class="nav-item" onclick="nav('todo',this)" id="nav-todo"><span class="nav-icon">✅</span><span class="nav-label">To-Do List</span><span class="nav-badge" id="todo-badge" style="display:none">0</span></button>
+      <button class="nav-item" onclick="nav('urgent',this)" id="nav-urgent"><span class="nav-icon">🔥</span><span class="nav-label">Urgent Study</span><span class="nav-badge" id="urgent-badge" style="display:none">0</span></button>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-avatar" id="sb-avatar">S</div>
+      <div class="sb-user-info">
+        <div class="sb-username" id="sb-username">Student</div>
+        <div class="sb-useremail" id="sb-roll">Roll No —</div>
+      </div>
+      <button class="sb-logout" onclick="doLogout()" title="Logout">⏻</button>
+    </div>
+  </aside>
+
+  <div id="main">
+    <div class="topbar">
+      <div>
+        <span class="topbar-title" id="topbar-title">Dashboard</span>
+        <span class="topbar-sub" id="topbar-sub">Welcome back 👋</span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-pill" id="topbar-date"></div>
+        <div class="topbar-notif">🔔<div class="notif-dot"></div></div>
+      </div>
+    </div>
+
+    <div id="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="dash-grid" id="dash-stats"></div>
+        <div class="quick-actions" style="margin-bottom:20px">
+          <button class="qa-btn" onclick="nav('attendance',document.querySelector('[onclick*=attendance]'))"><span class="qa-btn-icon">📅</span>Log Attendance</button>
+          <button class="qa-btn" onclick="openModal('modal-add-grade')"><span class="qa-btn-icon">🎓</span>Add Grade</button>
+          <button class="qa-btn" onclick="openModal('modal-add-todo')"><span class="qa-btn-icon">✅</span>Add Task</button>
+          <button class="qa-btn" onclick="openModal('modal-add-urgent')"><span class="qa-btn-icon">🔥</span>Urgent Study</button>
+        </div>
+        <div class="dash-row">
+          <div class="card">
+            <div class="section-hd"><h2>Attendance Overview</h2><span class="badge purple">This Semester</span></div>
+            <div class="widget-chart"><canvas id="dash-att-chart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="section-hd"><h2>CGPA Trend</h2></div>
+            <div class="widget-chart"><canvas id="dash-cgpa-chart"></canvas></div>
+          </div>
+        </div>
+        <div class="dash-row2">
+          <div class="card">
+            <div class="section-hd"><h2>Recent Activity</h2></div>
+            <div id="dash-activity"></div>
+          </div>
+          <div class="card">
+            <div class="section-hd"><h2>Upcoming Tasks</h2><button class="btn secondary small" onclick="openModal('modal-add-todo')">+ Add</button></div>
+            <div id="dash-upcoming"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="page" id="page-profile">
+        <div class="profile-header">
+          <div class="profile-avatar-big" id="profile-av">S</div>
+          <div>
+            <div class="profile-name" id="profile-name">Student</div>
+            <div class="profile-role">B.Tech · Computer Science · 3rd Year</div>
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+              <span class="badge green">Active</span>
+              <span class="badge blue">2025-26 Batch</span>
+            </div>
+          </div>
+        </div>
+        <div class="profile-grid">
+          <div class="card">
+            <div class="card-title">Personal Details</div>
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+              <div class="form-row">
+                <div><label>Full Name</label><input id="pf-name" placeholder="Your full name"/></div>
+                <div><label>Roll No.</label><input id="pf-roll" readonly/></div>
+              </div>
+              <div class="form-row">
+                <div><label>Email</label><input id="pf-email" type="email" placeholder="you@college.edu"/></div>
+                <div><label>Phone</label><input id="pf-phone" placeholder="+91 XXXXX XXXXX"/></div>
+              </div>
+              <div class="form-row">
+                <div><label>Branch</label>
+                  <select id="pf-branch"><option>Computer Science</option><option>Electronics</option><option>Mechanical</option><option>Civil</option><option>Chemical</option></select>
+                </div>
+                <div><label>Semester</label>
+                  <select id="pf-sem"><option>1st</option><option>2nd</option><option>3rd</option><option selected>4th</option><option>5th</option><option>6th</option><option>7th</option><option>8th</option></select>
+                </div>
+              </div>
+              <button class="btn" onclick="saveProfile()">💾 Save Profile</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Academic Stats</div>
+            <div id="profile-stats" style="margin-top:16px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE -->
+      <div class="page" id="page-attendance">
+        <div id="att-alert"></div>
+        <div class="att-summary-grid" id="att-subject-cards"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <div class="card">
+            <div class="section-hd"><h2>Log Attendance</h2></div>
+            <div class="form-row">
+              <div><label>Subject</label><input id="att-sub" placeholder="e.g. Mathematics"/></div>
+              <div><label>Date</label><input id="att-date" type="date"/></div>
+            </div>
+            <div class="form-row">
+              <div><label>Status</label>
+                <select id="att-status"><option value="present">✅ Present</option><option value="absent">❌ Absent</option></select>
+              </div>
+              <div><label>Session</label>
+                <select id="att-session"><option>Morning</option><option>Afternoon</option><option>Lab</option></select>
+              </div>
+            </div>
+            <button class="btn" onclick="addAttendance()">+ Log Record</button>
+          </div>
+          <div class="card">
+            <div class="card-title">Attendance Chart</div>
+            <div style="height:180px;display:flex;align-items:center;justify-content:center"><canvas id="att-pie"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-hd"><h2>All Records</h2>
+            <div style="display:flex;gap:8px">
+              <select id="att-filter-sub" onchange="renderAttTable()" style="width:auto;padding:6px 10px;font-size:.8rem"><option value="">All Subjects</option></select>
+              <select id="att-filter-status" onchange="renderAttTable()" style="width:auto;padding:6px 10px;font-size:.8rem"><option value="">All Status</option><option value="present">Present</option><option value="absent">Absent</option></select>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Subject</th><th>Date</th><th>Session</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="att-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CGPA -->
+      <div class="page" id="page-cgpa">
+        <div class="cgpa-hero" id="cgpa-hero"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <div class="card">
+            <div class="section-hd"><h2>Add Subject Grade</h2></div>
+            <div class="form-row">
+              <div><label>Semester</label><input id="g-sem" placeholder="e.g. Sem 3"/></div>
+              <div><label>Subject</label><input id="g-sub" placeholder="e.g. DBMS"/></div>
+            </div>
+            <div class="form-row">
+              <div><label>Grade Point (0-10)</label><input id="g-grade" type="number" min="0" max="10" step=".1" placeholder="8.5"/></div>
+              <div><label>Credits</label><input id="g-credits" type="number" min="1" max="6" placeholder="4"/></div>
+            </div>
+            <button class="btn" onclick="addGrade()">+ Add Grade</button>
+          </div>
+          <div class="card">
+            <div class="section-hd"><h2>SGPA by Semester</h2></div>
+            <div style="height:180px;display:flex;align-items:center;justify-content:center"><canvas id="sgpa-bar"></canvas></div>
+          </div>
+        </div>
+        <div class="sem-tabs" id="sem-tabs"></div>
+        <div class="card">
+          <div class="section-hd"><h2 id="cgpa-tbl-title">All Grades</h2><button class="btn secondary small" onclick="exportCGPA()">⬇ Export</button></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Semester</th><th>Subject</th><th>Grade</th><th>Credits</th><th>Letter</th><th>Action</th></tr></thead>
+              <tbody id="cgpa-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TODO -->
+      <div class="page" id="page-todo">
+        <div class="section-hd">
+          <h2>All Tasks</h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn secondary small" onclick="setTodoFilter('all')" id="tf-all">All</button>
+            <button class="btn secondary small" onclick="setTodoFilter('pending')" id="tf-pending">Pending</button>
+            <button class="btn secondary small" onclick="setTodoFilter('done')" id="tf-done">Done</button>
+            <button class="btn small" onclick="openModal('modal-add-todo')">+ Add Task</button>
+          </div>
+        </div>
+        <div class="kanban" id="todo-kanban"></div>
+      </div>
+
+      <!-- URGENT -->
+      <div class="page" id="page-urgent">
+        <div class="section-hd">
+          <h2>🔥 Urgent Study List</h2>
+          <button class="btn small" onclick="openModal('modal-add-urgent')">+ Add Topic</button>
+        </div>
+        <div style="background:linear-gradient(135deg,#7f1d1d,#991b1b);border-radius:14px;padding:20px 24px;color:#fff;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+          <span style="font-size:2rem">🚨</span>
+          <div>
+            <div style="font-weight:800;font-size:1.05rem;margin-bottom:4px">Priority Study Board</div>
+            <div style="font-size:.82rem;opacity:.75">Topics ranked by urgency — tackle the top ones first!</div>
+          </div>
+        </div>
+        <div class="urgent-list" id="urgent-list"></div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODALS ══ -->
+<div class="modal-overlay" id="modal-add-todo">
+  <div class="modal">
+    <div class="modal-title">Add New Task <button class="modal-close" onclick="closeModal('modal-add-todo')">✕</button></div>
+    <div><label>Task Title</label><input id="m-todo-text" placeholder="e.g. Complete Assignment 3"/></div>
+    <div style="margin-top:12px" class="form-row">
+      <div><label>Due Date</label><input id="m-todo-due" type="date"/></div>
+      <div><label>Priority</label><select id="m-todo-priority"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select></div>
+    </div>
+    <div style="margin-top:12px"><label>Subject (optional)</label><input id="m-todo-sub" placeholder="e.g. Physics"/></div>
+    <div style="margin-top:12px"><label>Notes</label><textarea id="m-todo-notes" placeholder="Any extra details..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal('modal-add-todo')">Cancel</button>
+      <button class="btn" onclick="addTodo()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-grade">
+  <div class="modal">
+    <div class="modal-title">Add Grade <button class="modal-close" onclick="closeModal('modal-add-grade')">✕</button></div>
+    <div class="form-row">
+      <div><label>Semester</label><input id="mg-sem" placeholder="e.g. Sem 3"/></div>
+      <div><label>Subject</label><input id="mg-sub" placeholder="e.g. DBMS"/></div>
+    </div>
+    <div class="form-row" style="margin-top:12px">
+      <div><label>Grade (0-10)</label><input id="mg-grade" type="number" min="0" max="10" step=".1" placeholder="8.5"/></div>
+      <div><label>Credits</label><input id="mg-credits" type="number" min="1" max="6" placeholder="4"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal('modal-add-grade')">Cancel</button>
+      <button class="btn" onclick="addGradeModal()">Add Grade</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-urgent">
+  <div class="modal">
+    <div class="modal-title">🔥 Add Urgent Topic <button class="modal-close" onclick="closeModal('modal-add-urgent')">✕</button></div>
+    <div><label>Topic / Subject</label><input id="mu-topic" placeholder="e.g. Integration by Parts — Maths"/></div>
+    <div style="margin-top:12px" class="form-row">
+      <div><label>Urgency (1-10)</label><input id="mu-urgency" type="number" min="1" max="10" placeholder="8"/></div>
+      <div><label>Exam Date</label><input id="mu-exam" type="date"/></div>
+    </div>
+    <div style="margin-top:12px"><label>Why urgent?</label><textarea id="mu-reason" placeholder="Exam tomorrow, weak concept..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal('modal-add-urgent')">Cancel</button>
+      <button class="btn danger" onclick="addUrgent()">Add 🔥</button>
+    </div>
+  </div>
+</div>
+<script src="/static/api.js"></script>
+</body>
+</html>
+
+
