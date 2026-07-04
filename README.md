@@ -1,73 +1,47 @@
-# EduSpace
+# 🎓 EduSpace
 
-A student management web application built to help students track attendance, calculate CGPA, manage to-do lists, and monitor internal assessment (IA) marks — all from one dashboard.
+> Your all-in-one student dashboard — attendance, CGPA, tasks, and marks, sorted.
 
-## Features
-- 📅 Attendance tracking
-- 🎓 CGPA calculator
-- ✅ To-do list manager
-- 📊 IA marks tracking with visual charts
-- 🔥 Urgent tasks / priority reminders
+Tired of juggling five different apps just to track your semester? EduSpace brings everything a student needs into one clean, fast dashboard — built from scratch with FastAPI and a whole lot of late-night debugging. 🔥
 
-## Tech Stack
-- **Backend:** FastAPI (Python)
-- **Database:** SQLite (via SQLAlchemy)
-- **Frontend:** HTML, CSS, JavaScript
-- **Charts:** Chart.js
+---
 
-## Running Locally
+## ✨ Features
 
-1. Clone the repository
+| Feature | What it does |
+|---|---|
+| 📅 **Attendance Tracker** | Never lose count of those bunked classes again |
+| 🎓 **CGPA Calculator** | Instant, accurate CGPA — no spreadsheet math |
+| ✅ **To-Do List** | Keep assignments and deadlines in check |
+| 📊 **IA Marks Tracker** | Visual charts so you know exactly where you stand |
+| 🔥 **Urgent Tasks** | Priority flags for the stuff that can't wait |
+
+---
+
+## 🛠️ Built With
+
+- ⚡ **FastAPI** — backend that doesn't slow you down
+- 🗄️ **SQLite + SQLAlchemy** — lightweight, reliable storage
+- 🎨 **HTML/CSS/JS** — clean, responsive frontend
+- 📈 **Chart.js** — because data looks better as graphs
+
+---
+
+## 🚀 Getting Started
+
 ```bash
-   git clone https://github.com/amulyarangaraj158-stack/EDUSPACE-Student-managment-system.git
-   cd EDUSPACE-Student-managment-system
+git clone https://github.com/amulyarangaraj158-stack/EDUSPACE-Student-managment-system.git
+cd EDUSPACE-Student-managment-system
+pip install fastapi uvicorn
+uvicorn main:app --reload
 ```
 
-2. Install dependencies
-```bash
-   pip install fastapi uvicorn
-```
+Then open **http://127.0.0.1:8000** and you're in. 🎉
 
-3. Run the server
-```bash
-   uvicorn main:app --reload
-```
+---
 
-A student management web application built to help students track attendance, calculate CGPA, manage to-do lists, and monitor internal assessment (IA) marks — all from one dashboard.
+## 👥 The Contributors
+- Amulya R 
+- Ananya S R
 
-## Features
-- 📅 Attendance tracking
-- 🎓 CGPA calculator
-- ✅ To-do list manager
-- 📊 IA marks tracking with visual charts
-- 🔥 Urgent tasks / priority reminders
-
-## Tech Stack
-- **Backend:** FastAPI (Python)
-- **Database:** SQLite (via SQLAlchemy)
-- **Frontend:** HTML, CSS, JavaScript
-- **Charts:** Chart.js
-
-## Running Locally
-
-1. Clone the repository
-```bash
-   git clone https://github.com/amulyarangaraj158-stack/EDUSPACE-Student-managment-system.git
-   cd EDUSPACE-Student-managment-system
-```
-
-2. Install dependencies
-```bash
-   pip install fastapi uvicorn
-```
-
-3. Run the server
-```bash
-   uvicorn main:app --reload
-```
-
-4. Open your browser and go to:
-http://127.0.0.1:8000
-## Contributors
-Built by Amulya R , Ananya SR
- CSE students at Sapthagiri NPS University
+---
